@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 测试文件和输出
+test/
+test_batch/
+test_batch_output/
+examples/
+*.gltf
+*.glb
+
+# Shapefile测试数据（保留示例，但排除大文件）
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+
+# 临时文件
+*.log
+*.tmp
+
+# 发布包（太大不上传）
+地理数据转GLTF工具_v1.0/
+
+# PyInstaller构建文件
+地理数据转GLTF工具.spec
+
