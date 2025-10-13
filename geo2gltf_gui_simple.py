@@ -57,8 +57,8 @@ class Geo2GLTFGui:
     def __init__(self, root):
         self.root = root
         self.root.title("地理数据转GLTF转换工具")
-        self.root.geometry("900x700")
-        self.root.minsize(800, 600)
+        self.root.geometry("900x800")
+        self.root.minsize(800, 700)
         
         # 设置窗口图标（如果logo存在）
         logo_path = Path("logo.png")
@@ -210,7 +210,8 @@ class Geo2GLTFGui:
         """创建批量转换标签页"""
         # 配置网格权重
         self.batch_frame.columnconfigure(0, weight=1)
-        self.batch_frame.rowconfigure(3, weight=1)
+        self.batch_frame.rowconfigure(1, weight=1)  # 文件列表区域可以拉伸
+        self.batch_frame.rowconfigure(4, weight=1)  # 日志区域也可以拉伸
         
         # 目录选择组
         dir_group = ttk.LabelFrame(self.batch_frame, text="目录选择", padding="10")
@@ -231,30 +232,9 @@ class Geo2GLTFGui:
         ttk.Button(dir_group, text="浏览...", command=self.browse_batch_output).grid(
             row=1, column=2, pady=5)
         
-        # 选项组
-        options_group = ttk.LabelFrame(self.batch_frame, text="扫描选项", padding="10")
-        options_group.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
-        
-        # 第一行：递归选项
-        ttk.Checkbutton(options_group, text="递归搜索子目录", 
-                       variable=self.recursive).grid(row=0, column=0, sticky=tk.W, pady=5)
-        
-        # 第二行：文件类型
-        type_frame = ttk.Frame(options_group)
-        type_frame.grid(row=1, column=0, sticky=tk.W, pady=5)
-        ttk.Label(type_frame, text="文件类型:").pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Checkbutton(type_frame, text="GeoJSON", 
-                       variable=self.file_type_geojson).pack(side=tk.LEFT, padx=5)
-        ttk.Checkbutton(type_frame, text="Shapefile", 
-                       variable=self.file_type_shp).pack(side=tk.LEFT, padx=5)
-        
-        # 第三行：扫描按钮
-        ttk.Button(options_group, text="扫描文件", command=self.scan_files,
-                  width=15).grid(row=2, column=0, pady=(10, 5))
-        
         # 文件列表组
-        files_group = ttk.LabelFrame(self.batch_frame, text="文件列表（双击配置颜色）", padding="5")
-        files_group.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        files_group = ttk.LabelFrame(self.batch_frame, text="文件列表（双击配置颜色）", padding="10")
+        files_group.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
         files_group.columnconfigure(0, weight=1)
         files_group.rowconfigure(0, weight=1)
         
@@ -264,7 +244,7 @@ class Geo2GLTFGui:
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
         
-        self.file_listbox = tk.Listbox(list_frame, height=8, font=('', 9))
+        self.file_listbox = tk.Listbox(list_frame, height=10, font=('', 9))
         self.file_listbox.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         self.file_listbox.bind('<Double-Button-1>', self.configure_file_color)
         
@@ -272,14 +252,33 @@ class Geo2GLTFGui:
         scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
         self.file_listbox['yscrollcommand'] = scrollbar.set
         
-        # 参数设置组（横向布局以节省空间）
-        params_group = ttk.LabelFrame(self.batch_frame, text="默认参数设置", padding="10")
-        params_group.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        # 参数设置组
+        params_group = ttk.LabelFrame(self.batch_frame, text="批量转换参数设置", padding="10")
+        params_group.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         self.create_param_controls(params_group, is_batch=True)
+        
+        # 日志输出组
+        log_group = ttk.LabelFrame(self.batch_frame, text="批量转换日志", padding="5")
+        log_group.grid(row=4, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        log_group.columnconfigure(0, weight=1)
+        log_group.rowconfigure(0, weight=1)
+        
+        # 日志文本框和滚动条
+        log_frame = ttk.Frame(log_group)
+        log_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        log_frame.columnconfigure(0, weight=1)
+        log_frame.rowconfigure(0, weight=1)
+        
+        self.batch_status_text = tk.Text(log_frame, height=6, wrap=tk.WORD, font=('Consolas', 9))
+        self.batch_status_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        
+        scrollbar = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.batch_status_text.yview)
+        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        self.batch_status_text['yscrollcommand'] = scrollbar.set
         
         # 转换按钮和进度
         control_frame = ttk.Frame(self.batch_frame)
-        control_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        control_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         control_frame.columnconfigure(0, weight=1)
         
         # 按钮
@@ -293,25 +292,6 @@ class Geo2GLTFGui:
         # 进度条
         self.batch_progress = ttk.Progressbar(control_frame, mode='determinate', length=400)
         self.batch_progress.grid(row=2, column=0, pady=5)
-        
-        # 日志输出组
-        log_group = ttk.LabelFrame(self.batch_frame, text="批量转换日志", padding="5")
-        log_group.grid(row=5, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        log_group.columnconfigure(0, weight=1)
-        log_group.rowconfigure(0, weight=1)
-        
-        # 日志文本框和滚动条
-        log_frame = ttk.Frame(log_group)
-        log_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        log_frame.columnconfigure(0, weight=1)
-        log_frame.rowconfigure(0, weight=1)
-        
-        self.batch_status_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=('Consolas', 9))
-        self.batch_status_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        
-        scrollbar = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.batch_status_text.yview)
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
-        self.batch_status_text['yscrollcommand'] = scrollbar.set
     
     def create_param_controls(self, parent, is_batch=False):
         """创建参数控制组件"""
@@ -441,6 +421,8 @@ class Geo2GLTFGui:
             self.batch_input_dir.set(dirname)
             if not self.batch_output_dir.get():
                 self.batch_output_dir.set(dirname + "_output")
+            # 自动扫描文件
+            self.auto_scan_files()
     
     def browse_batch_output(self):
         """浏览批量输出目录"""
@@ -460,8 +442,36 @@ class Geo2GLTFGui:
             if not is_batch and hasattr(self, 'color_canvas'):
                 self.color_canvas.config(bg=color[1])
     
+    def auto_scan_files(self):
+        """自动扫描文件（选择目录后自动调用）"""
+        if not self.batch_input_dir.get():
+            return
+        
+        input_path = Path(self.batch_input_dir.get())
+        if not input_path.exists():
+            return
+        
+        # 自动扫描所有支持的文件类型，递归搜索子目录
+        extensions = ['.geojson', '.json', '.shp']
+        
+        # 查找文件
+        self.batch_files = self.find_geo_files(input_path, True, extensions)
+        
+        # 更新列表
+        self.file_listbox.delete(0, tk.END)
+        self.file_color_manager.clear()
+        
+        for f in self.batch_files:
+            self.file_listbox.insert(tk.END, f.name)
+            # 设置默认颜色
+            self.file_color_manager.set_color(f.name, self.color_rgb)
+        
+        if self.batch_files:
+            # 在状态栏显示扫描结果，不弹窗
+            self.root.title(f"地理数据转GLTF转换工具 - 已扫描到 {len(self.batch_files)} 个文件")
+    
     def scan_files(self):
-        """扫描文件"""
+        """扫描文件（手动调用）"""
         if not self.batch_input_dir.get():
             messagebox.showerror("错误", "请先选择输入目录！")
             return
